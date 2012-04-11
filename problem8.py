@@ -7,4 +7,3 @@ for x in xrange(0,len(number)-5):
         maxim = current
 
 print maxim
-print len(number)
