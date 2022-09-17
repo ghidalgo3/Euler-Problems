@@ -48,13 +48,43 @@ let rec primeFactors (n : bigint) =
     let rec p (i : bigint) =
         match n % i with
         | zero when zero = 0 -> i :: primeFactors (n / i)
-        | remainder when i < hi -> p (i + bigint 1)
+        | remainder when i <= hi -> p (i + bigint 1)
         | _ -> [n]
-    p 2
+    if n = 1 then [] else p 2
+
+let isPrime n =
+    (primeFactors n).Length = 1
 
 let fibs =
     takeWhile fib (fun n -> n < 4_000_000) 0
     |> Seq.filter (fun n -> n % (bigint 2) = (bigint 0))
     |> Seq.sum
 
+// This is an example of an "active pattern"
+// The pattern is that when a parameter is implicitly supplied, it should go last
+let (|Even|Odd|) input = if input % 2 then Even else Odd 
+
+let isPalindrome n = 
+    let rec isStringPalindrome (s : string) = 
+        match s.Length with
+        | 1 -> true
+        | 2 -> s.[0] = s.[1]
+        | _ -> s.[0] = s.[s.Length - 1] && isStringPalindrome (s.Substring(1, s.Length - 2))
+    isStringPalindrome (n.ToString())
+    // even
+    // odd
+
+let allPairs xs =
+    seq {
+        for x in xs do
+            for y in xs do
+                yield (x, y)
+    }
+
+
+// if you're going to init and map a numeric range, list expressions are a nice way to avoid a List.map 
+[ for (x, y) in allPairs [1 .. 999] -> x * y ]
+|> List.filter isPalindrome 
+|> List.max
 printfn "%A" fibs
+
