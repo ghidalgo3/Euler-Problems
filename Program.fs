@@ -52,8 +52,15 @@ let rec primeFactors (n : bigint) =
         | _ -> [n]
     if n = 1 then [] else p 2
 
-let isPrime n =
-    (primeFactors n).Length = 1
+let freq ns =
+    List.fold (fun (acc: Map<bigint, int>) n ->
+            if acc.ContainsKey n then
+                acc.Change (n, fun n -> Some(n.Value + 1))
+            else
+                acc.Add (n, 1)
+        ) Map.empty ns
+
+let isPrime n = (primeFactors n).Length = 1
 
 let fibs =
     takeWhile fib (fun n -> n < 4_000_000) 0
@@ -81,6 +88,31 @@ let allPairs xs =
                 yield (x, y)
     }
 
+let lcm a b = 
+    let primesA = (primeFactors >> freq) a
+    let primesB = (primeFactors >> freq) b
+    // primesA is my initial value
+    // primesB is my map i'm actually folding over
+    // inside of fold, acc is primesA 
+    // prime and freq are entries of primesB
+    (primesA, primesB) ||> Map.fold (fun acc prime freq ->
+        if (acc.ContainsKey prime) then
+            acc.Change (prime, fun n -> Some(max (n.Value) freq))
+        else
+            acc.Add (prime, freq)
+        )
+
+/// Convert a prime factorization to a number
+let toNumber (factors : Map<bigint, int>) : bigint =
+    // inside, acc is 1 (initially)
+    // prime and power are the entries of factors
+    (bigint 1, factors) ||> Map.fold (fun acc (prime:bigint) power ->
+        acc * bigint.Pow(prime, power))
+
+// is it the LCM? Yes!
+let lcmAll xs =
+    xs |> List.fold (fun acc n ->
+        lcm acc n |> toNumber) 1
 
 // if you're going to init and map a numeric range, list expressions are a nice way to avoid a List.map 
 [ for (x, y) in allPairs [1 .. 999] -> x * y ]
